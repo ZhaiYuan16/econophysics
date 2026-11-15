@@ -1,0 +1,34 @@
+length: 128
+p_c: 0.592746
+p_ratios:
+  - 0.90
+  - 1.00
+  - 1.10
+activities:
+  - 0.001
+  - 0.01
+  - 0.1
+  - 0.5
+replicates: 4
+configurations_per_replicate: 100
+trades_per_configuration: 500
+market_depth: 16384.0
+boundary: open
+extreme_thresholds:
+  - 3.0
+  - 5.0
+  - 8.0
+tail_xmin_quantiles:
+  - 0.70
+  - 0.80
+  - 0.85
+  - 0.90
+  - 0.925
+  - 0.95
+tail_minimum_count: 500
+bootstrap_replicates: 300
+length_sensitivity_fractions:
+  - 0.25
+  - 0.50
+  - 1.00
+seed: 20261006

@@ -1,0 +1,36 @@
+lengths:
+  - 32
+  - 64
+  - 128
+  - 256
+p_c: 0.592746
+p_ratios:
+  - 0.80
+  - 0.90
+  - 0.94
+  - 0.96
+  - 0.97
+  - 0.98
+  - 0.99
+  - 1.00
+  - 1.01
+  - 1.02
+  - 1.03
+  - 1.04
+  - 1.06
+  - 1.10
+samples_per_length:
+  32: 300
+  64: 250
+  128: 150
+  256: 60
+boundary: open
+finite_cluster_exclusion: largest
+histogram_p_ratios:
+  - 0.80
+  - 0.97
+  - 1.00
+  - 1.03
+  - 1.10
+bootstrap_replicates: 500
+seed: 20261006

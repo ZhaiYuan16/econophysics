@@ -1,0 +1,17 @@
+baseline_config: configs/criticality.yaml
+baseline_estimates: results/tables/criticality_pseudocritical.csv
+p_c: 0.592746
+lengths: [32, 64, 128, 256, 512]
+boundary: open
+coarse_ratios: [0.80, 0.90, 0.94, 0.96, 0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03, 1.04, 1.06, 1.10]
+spanning_window: [0.97, 1.03]
+peak_half_width: 0.03
+ratio_step: 0.002
+peak_center_512: 1.01
+samples_per_length: {32: 300, 64: 250, 128: 200, 256: 200, 512: 200}
+bootstrap_replicates: 1000
+tail_bootstrap_replicates: 1000
+tail_count_thresholds: [5, 10, 20]
+seed: 20261113
+pilot_ratios: [0.98, 1.00, 1.02]
+pilot_samples: 30

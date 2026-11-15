@@ -1,0 +1,43 @@
+
+# Experiment outputs and external resources
+results/
+data/
+report/
+references/
+figures/
+tables/
+
+# Python cache
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Python environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*secret*
+*credential*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

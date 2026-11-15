@@ -1,0 +1,18 @@
+version: soc_research_v2
+lengths: [32, 64, 128]
+initial_occupancies: [0.20, 0.50, 0.85]
+replicates: 8
+steps: 3000
+burn_in: 1000
+steps_by_length: {32: 4000, 64: 6500, 128: 12000}
+burn_in_by_length: {32: 1200, 64: 3000, 128: 7500}
+activity: 0.01
+theta: 0.08
+q: 0.25
+drive_nodes: 1
+seed: 20261115
+bootstrap_replicates: 1000
+static_summary: results/criticality_revision_20261113/full/tables/summary.csv
+conditions:
+  - {name: baseline, mode: baseline}
+  - {name: cascade, mode: cascade}

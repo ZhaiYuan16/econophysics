@@ -1,0 +1,8 @@
+length: 32
+p: 0.592746
+activity: 0.01
+market_depth: 1024.0
+boundary: open
+mode: annealed
+steps: 5000
+seed: 20261005

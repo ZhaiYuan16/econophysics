@@ -1,0 +1,11 @@
+length: 32
+p_values:
+  - 0.55
+  - 0.592746
+  - 0.63
+activity: 0.01
+market_depth: 1024.0
+boundary: open
+configurations_per_p: 50
+trades_per_configuration: 100
+seed: 20261005

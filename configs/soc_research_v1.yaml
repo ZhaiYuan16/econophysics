@@ -1,0 +1,23 @@
+version: soc_research_v1
+lengths: [32, 64, 128]
+initial_occupancies: [0.20, 0.50, 0.85]
+replicates: 8
+steps: 3000
+burn_in: 1000
+activity: 0.01
+theta: 0.08
+q: 0.25
+drive_nodes: 1
+seed: 20261114
+bootstrap_replicates: 1000
+static_summary: results/criticality_revision_20261113/full/tables/summary.csv
+conditions:
+  - {name: baseline, mode: baseline}
+  - {name: cascade, mode: cascade}
+  - {name: no_dissipation, mode: no_dissipation, lengths: [64], initial_occupancies: [0.50]}
+  - {name: random_dissipation, mode: random_dissipation, lengths: [64], initial_occupancies: [0.50]}
+  - {name: theta_006, mode: baseline, theta: 0.06, lengths: [64], initial_occupancies: [0.50]}
+  - {name: theta_010, mode: baseline, theta: 0.10, lengths: [64], initial_occupancies: [0.50]}
+  - {name: q_010, mode: baseline, q: 0.10, lengths: [64], initial_occupancies: [0.50]}
+  - {name: q_050, mode: baseline, q: 0.50, lengths: [64], initial_occupancies: [0.50]}
+  - {name: drive_2, mode: cascade, drive_nodes: 2, lengths: [64], initial_occupancies: [0.50]}

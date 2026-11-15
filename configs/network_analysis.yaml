@@ -1,0 +1,26 @@
+node_count: 4096
+target_mean_degree: 4
+topologies:
+  - lattice
+  - er
+  - ws
+  - ba
+network_replicates: 4
+occupancy_samples_per_p: 30
+p_grids:
+  lattice: [0.45, 0.50, 0.54, 0.56, 0.57, 0.58, 0.585, 0.59, 0.595, 0.60, 0.61, 0.62, 0.64, 0.68, 0.75]
+  er: [0.10, 0.15, 0.18, 0.20, 0.22, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.32, 0.34, 0.40]
+  ws: [0.20, 0.25, 0.30, 0.35, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54, 0.55, 0.56, 0.58, 0.60]
+  ba: [0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.18, 0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.28, 0.35]
+relative_p_values: [0.90, 1.00, 1.10]
+market_configurations_per_network: 60
+trades_per_configuration: 400
+activity: 0.01
+market_depth: 4096.0
+ws_rewiring_probability: 0.1
+path_sources: 64
+extreme_thresholds: [3.0, 5.0, 8.0]
+tail_xmin_quantiles: [0.70, 0.80, 0.85, 0.90, 0.925, 0.95]
+tail_minimum_count: 300
+bootstrap_replicates: 200
+seed: 20261006
