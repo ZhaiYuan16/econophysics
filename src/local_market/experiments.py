@@ -1,58 +1,47 @@
 """Small experiment runners shared by command-line entry points."""
 
-from __future__ import annotations  # 延后求值类型注解，使返回类型可以引用当前配置类。
+from __future__ import annotations
 
-import numpy as np  # 第三方 NumPy 库，基准入口用 random.default_rng 按种子创建随机数生成器。
-import pandas as pd  # 第三方 Pandas 库，供本模块的扫描和系综实验构造、分组及合并表格。
-from scipy import stats  # 第三方 SciPy 统计模块，linregress 用于本模块的有限尺寸标度回归。
-from tqdm import tqdm  # 第三方进度显示工具，tqdm 包装采样进度并支持逐次更新。
+import numpy as np
+import pandas as pd
+from scipy import stats
+from tqdm import tqdm
 
-from .cb_model import (  # 本地 src/local_market/cb_model.py，提供交易模拟和结果结构。
-    MarketSimulation,  # 保存需求、收益率、对数价格、格点占据状态和团簇计数的返回对象。
-    sample_demands_and_active_counts,  # 为本模块的市场系综接口批量抽取需求和活跃团簇数。
-    simulate_annealed,  # 每步更新团簇配置的模拟。
-    simulate_quenched,  # 固定团簇配置的模拟。
+from .cb_model import (
+    MarketSimulation,
+    sample_demands_and_active_counts,
+    simulate_annealed,
+    simulate_quenched,
 )
-from .config import BaselineConfig, CriticalityConfig, MarketAnalysisConfig  # 本地 src/local_market/config.py，分别由 scripts/run_baseline.py, scripts/run_criticality_scan.py, scripts/run_market_analysis.py 调用。
-from .networks import sample_lattice_occupancy  # 本地 src/local_market/networks.py，按占据概率生成布尔格点。
-from .percolation import identify_lattice_clusters  # 本地 src/local_market/percolation.py，按边界识别四邻域团簇。
-from .statistics import (  # 本地 src/local_market/statistics.py，供其他实验接口进行团簇与收益率统计。
-    finite_cluster_sizes,  # 根据排除规则取得有限团簇的规模数组。
-    return_statistics,  # 计算收益率的描述统计与极端事件概率。
-    standardize_returns,  # 用样本均值和样本标准差计算标准化收益率。
-    susceptibility_from_sizes,  # 由规模数组计算有限团簇易感性 Σs²/Σs。
+from .config import BaselineConfig, CriticalityConfig, MarketAnalysisConfig
+from .networks import sample_lattice_occupancy
+from .percolation import identify_lattice_clusters
+from .statistics import (
+    finite_cluster_sizes,
+    return_statistics,
+    standardize_returns,
+    susceptibility_from_sizes,
 )
+
 
 def run_baseline(config: BaselineConfig) -> MarketSimulation:
-    # 组织一次基准实验，按 mode(quenched/annealed) 选择固定配置或逐步更新配置的交易方式。
-    # 由 scripts/run_baseline.py 的 main 调用。
-    # 输入：
-    #       config的8个字段：length、p、activity、market_depth、boundary、mode、steps 和 seed。
-    # 输出：
-    #       MarketSimulation对象，来自 simulate_quenched() 或 simulate_annealed()。
-
     """Run one configured baseline experiment with a single RNG stream."""
-    rng = np.random.default_rng(config.seed)  # 占据抽样和交易抽样共用此随机流，种子用于复现实验。
+    rng = np.random.default_rng(config.seed)
 
     def make_configuration():
-        # 生成一次团簇配置。quenched 时由 run_baseline 调用一次，annealed 时由 simulate_annealed 每步回调。
-        # 无显式参数，通过闭包读取外层 config 与 rng。
-        # 输出：ClusterConfiguration，identify_lattice_clusters()的输出格式，保存格点团簇标签与规模。
-
-        occupied = sample_lattice_occupancy(config.length, config.p, rng)   # 来自 networks.py，根据 p 抽取占据格点
-        return identify_lattice_clusters(occupied, config.boundary)     # 来自 percolation.py，根据 open/periodic 标记团簇。
+        occupied = sample_lattice_occupancy(config.length, config.p, rng)
+        return identify_lattice_clusters(occupied, config.boundary)
 
     if config.mode == "quenched":
-        return simulate_quenched(   # 来自 src/local_market/cb_model.py，执行固定团簇配置的交易模拟。
-            make_configuration(),   # 带括号的 make_configuration() 先执行，将固定配置交给 cb_model.py 批量交易。
+        return simulate_quenched(
+            make_configuration(),
             config.steps,
             config.activity,
             config.market_depth,
             rng,
         )
-    
-    return simulate_annealed(       # 来自 src/local_market/cb_model.py，执行逐步更新团簇配置的交易模拟。
-        make_configuration,         # 将 make_configuration 函数对象交给 cb_model.py，由它在每个交易步重新生成配置。
+    return simulate_annealed(
+        make_configuration,
         config.steps,
         config.activity,
         config.market_depth,

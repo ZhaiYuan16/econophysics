@@ -1,10 +1,10 @@
-"""Independent SOC research dynamics; legacy soc.py remains the baseline."""
+"""SOC drive and dissipation dynamics for the report's v1 and v2 experiments."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
-from .cb_model import sample_demands_and_active_once
+from .cb_model import excess_demand, sample_cluster_actions
 from .percolation import identify_lattice_clusters
 
 
@@ -44,7 +44,8 @@ def simulate(config: ResearchConfig, p0: float, seed: int, path_id: str):
         end_reason = "below_threshold"
         while True:
             clusters = identify_lattice_clusters(occ, "open")
-            demand, actions = sample_demands_and_active_once(clusters, config.activity, rng)
+            actions = sample_cluster_actions(clusters.cluster_count, config.activity, rng)
+            demand = excess_demand(clusters, actions)
             if duration == 0:
                 first_demand = demand
             if abs(demand) < config.theta*n or demand == 0:

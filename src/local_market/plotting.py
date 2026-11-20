@@ -423,7 +423,9 @@ def plot_network_degree_distributions(degrees: pd.DataFrame, path: Path) -> None
     totals = aggregated.groupby("topology")["node_count"].transform("sum")
     aggregated["fraction"] = aggregated["node_count"] / totals
     for topology, group in aggregated.groupby("topology", sort=False):
-        axis.loglog(group["degree"], group["fraction"], "o-", markersize=3, label=topology.upper())
+        # Isolated nodes remain in the total; log axes can only display k > 0.
+        visible = group[group["degree"] > 0]
+        axis.loglog(visible["degree"], visible["fraction"], "o-", markersize=3, label=topology.upper())
     axis.set_xlabel("Degree k")
     axis.set_ylabel("Node fraction")
     axis.grid(which="both", alpha=0.25)

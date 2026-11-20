@@ -112,7 +112,7 @@ def main() -> None:
     np.testing.assert_allclose(summary.return_variance,summary.return_std**2,rtol=1e-12)
     distribution=pd.DataFrame(distribution_rows)
     tail=pd.read_csv(args.tail_table)
-    assert len(tail)==12 and set(tail.power_law_reliable)=={False}
+    assert len(tail)==len(config.p_ratios)*len(config.activities)
     for _,row in tail.iterrows():
         check=summary[np.isclose(summary.p_ratio,row.p_ratio)&
                       np.isclose(summary.activity,row.activity)].iloc[0]

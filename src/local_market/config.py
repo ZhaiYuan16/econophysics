@@ -1,45 +1,36 @@
 """Configuration objects for reproducible baseline experiments."""
 
-from __future__ import annotations  # 延后求值类型注解，使返回类型可以引用当前配置类。
+from __future__ import annotations
 
-from dataclasses import asdict, dataclass  # 标准库，dataclass 生成初始化等方法，asdict 将配置对象转成字典。
-from pathlib import Path  # 标准库，Path 将路径参数统一为路径对象，open 打开配置文件。
-from typing import Any  # 标准库类型标注，表示 YAML 字典中的值可以具有不同类型。
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
 
-import yaml  # 第三方 PyYAML 库，safe_load 将 YAML 文本解析为 Python 字典等对象。
+import yaml
 
-from .percolation import Boundary  # 本地 src/local_market/percolation.py，声明 PBC/OBC。
-from .statistics import ClusterExclusion  # 本地 src/local_market/statistics.py，声明其他配置类的团簇排除规则类型。
+from .percolation import Boundary
+from .statistics import ClusterExclusion
 
 
-@dataclass(frozen=True)     # dataclass 自动生成构造器；frozen 使字段在构造后只读。
-class BaselineConfig:       
-    # 基准配置对象。
-    # 由 from_yaml 等调用者创建，仅被 scripts/run_baseline.py 调用，交给 experiments.py 的 run_baseline 使用。 
+@dataclass(frozen=True)
+class BaselineConfig:
+    length: int
+    p: float
+    activity: float
+    market_depth: float
+    boundary: Boundary
+    mode: str
+    steps: int
+    seed: int
 
-    length: int              # 二维正方形格点的边长 L
-    p: float                 # 每个潜在投资者位置独立被占据的概率 p
-    activity: float          # 每个团簇在一个交易步中参与交易的概率 a，买卖各占 a/2
-    market_depth: float      # 市场深度，控制相同需求引起多大的收益率
-    boundary: Boundary       # 边界条件，可选 'open' 或 'periodic'，格点边缘如何连接
-    mode: str                # quenched 固定一次占据与团簇配置，annealed 每个交易步重新生成配置
-    steps: int               # 模拟步数
-    seed: int                # 随机种子
- 
     def __post_init__(self) -> None:
-        # 检查参数范围，以及边界、交易模式的选项是否合法。
-        # 由 dataclass 自动生成的 __init__ 调用，使实验在参数合法后启动。
-        # 输入：
-        #       self : 刚完成字段赋值的配置对象
-        # 输出为None，非法参数触发 ValueError。
-
         if self.length <= 0:
             raise ValueError("length must be positive")
         if not 0.0 <= self.p <= 1.0:
             raise ValueError("p must lie in [0, 1]")
         if not 0.0 <= self.activity <= 1.0:
             raise ValueError("activity must lie in [0, 1]")
-        if self.market_depth <= 0:                  #  市场深度等于 L² 是配套 YAML 的设置约定。
+        if self.market_depth <= 0:
             raise ValueError("market_depth must be positive")
         if self.boundary not in ("open", "periodic"):
             raise ValueError("boundary must be 'open' or 'periodic'")
@@ -50,27 +41,12 @@ class BaselineConfig:
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "BaselineConfig":
-        # 从 YAML 路径构造经过校验的基准配置。
-        # 由 scripts/run_baseline.py 的 main 调用，为 run_baseline 准备参数。
-        # 输入：
-        #       cls，当前配置类，
-        #       path，字符串或 Path 路径。
-        # 输出：
-        #       BaselineConfig 对象。
-
         with Path(path).open(encoding="utf-8") as stream:
-            data: dict[str, Any] = yaml.safe_load(stream)  # 将配置文本读为参数字典。
-        return cls(**data)  # 展开为关键字参数，构造器保存字段并自动执行 __post_init__。
+            data: dict[str, Any] = yaml.safe_load(stream)
+        return cls(**data)
 
     def to_dict(self) -> dict[str, Any]:
-        # 将配置字段转换为普通字典。
-        # 由 scripts/run_baseline.py 的 main() 调用，用于生成实验元数据 JSON。
-        # 输入：
-        #       self，当前配置对象。
-        # 输出：
-        #       包含八个配置字段的字典。
-
-        return asdict(self)  # dataclasses.asdict 按字段读取配置并构造字典。
+        return asdict(self)
 
 
 @dataclass(frozen=True)

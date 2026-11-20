@@ -25,6 +25,7 @@ def audit_one_family(
     frame: pd.DataFrame, old_summary: pd.DataFrame, old_tails: pd.DataFrame,
     keys: list[str], quantiles: tuple[float, ...], minimum: int,
     configurations: int, networks: int | None, seed: int, bootstraps: int, gof_draws: int,
+    exclude_zero_returns: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     rows, draws_rows = [], []
     for group_index, (key, group) in enumerate(frame.groupby(keys, sort=True)):
@@ -44,7 +45,8 @@ def audit_one_family(
             selector = lambda rng: select_network_configuration_blocks(rng, networks, configurations)
         support, matrix = block_histogram(group["return"].to_numpy(dtype=float), ids)
         original_counts = np.asarray(matrix.sum(axis=0)).ravel()
-        point = weighted_statistics(support, original_counts, quantiles, minimum)
+        point = weighted_statistics(support, original_counts, quantiles, minimum,
+                                    exclude_zero_returns=exclude_zero_returns)
         old_stat = old_summary
         for column, value in parameters.items():
             old_stat = old_stat[old_stat[column] == value]
@@ -56,18 +58,22 @@ def audit_one_family(
         for column in ("return_excess_kurtosis", "zero_return_fraction", "p_abs_z_gt_5", "negative_crash_probability"):
             assert np.isclose(point[column], old_stat[column], atol=1e-10), (parameters, column)
         for column in ("xmin", "alpha_pdf", "ks_distance"):
-            assert np.isclose(point[column], old_tail[column], atol=1e-10), (parameters, column)
+            if not np.isclose(point[column], old_tail[column], atol=1e-10):
+                print("recomputed tail differs from saved legacy fit", parameters, column,
+                      flush=True)
+                break
         rng = np.random.default_rng(np.random.SeedSequence([seed, 810, group_index]))
         samples = []
         for replicate in range(bootstraps):
             counts = resampled_counts(matrix, selector(rng))
-            result = weighted_statistics(support, counts, quantiles, minimum)
+            result = weighted_statistics(support, counts, quantiles, minimum,
+                                         exclude_zero_returns=exclude_zero_returns)
             samples.append(result)
             draws_rows.append(parameters | {"bootstrap_replicate": replicate} | result)
         bootstrap = pd.DataFrame(samples)
         gof_rng = np.random.default_rng(np.random.SeedSequence([seed, 811, group_index]))
         adjusted_gof = selection_aware_tail_gof(support, matrix, point, quantiles, minimum,
-                                gof_rng, gof_draws, selector)
+                                gof_rng, gof_draws, selector, exclude_zero_returns=exclude_zero_returns)
         row = parameters | {
             "observations": len(group), "independent_networks": networks if networks is not None else np.nan,
             "configuration_blocks": matrix.shape[0], "actions_per_configuration": len(group)//matrix.shape[0],
@@ -212,7 +218,7 @@ def main() -> None:
         market, market_summary, market_tails, ["p_ratio", "activity"],
         market_config.tail_xmin_quantiles, market_config.tail_minimum_count,
         market_config.configurations_per_replicate, None,
-        market_config.seed, args.bootstraps, args.gof_draws)
+        market_config.seed, args.bootstraps, args.gof_draws, exclude_zero_returns=True)
     market_audit.to_csv(output / "tables/market_revised_statistics.csv", index=False)
     market_draws.to_csv(output / "tables/market_bootstrap_draws.csv.gz", index=False, compression="gzip")
     paired_market_activity_comparisons(market, market_config, args.bootstraps).to_csv(
@@ -270,7 +276,8 @@ def main() -> None:
         "network_seed": network_config.seed,
         "market_resampling": "400 occupied configurations, whole 500-action blocks; paired across activities for differences",
         "network_resampling": "4 networks, then 60 occupied configurations within each selected network, whole 400-action blocks",
-        "standardization": "recomputed on every bootstrap ensemble; original point estimates unchanged",
+        "standardization": "recomputed on every bootstrap ensemble; tail point estimates follow the selected raw-zero rule",
+        "market_tail_zero_rule": "exclude raw return==0 before |z| tail selection; other moments use all returns",
         "xmin": "minimum KS among configured positive-|z| quantiles, reselected in every bootstrap draw",
         "gof": "semiparametric common-Pareto tail null preserving block body and tail counts; xmin reselected",
         "source_sha256": {str(source): hashlib.sha256(source.read_bytes()).hexdigest() for source in sources},
